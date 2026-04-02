@@ -1,2 +1,1 @@
 feedgen==1.0.0
-playwright==1.53.0
