@@ -5,9 +5,9 @@ OUTPUT_FILE = "reuters_filtered.xml"
 
 def build_feed():
     fg = FeedGenerator()
-    fg.title("Reuters feed test")
+    fg.title("Reuters link test")
     fg.link(href="https://www.reuters.com/")
-    fg.description("Reuters feed test")
+    fg.description("Reuters link test")
     fg.language("en")
 
     with sync_playwright() as p:
@@ -16,13 +16,30 @@ def build_feed():
         page.goto("https://www.reuters.com/business/", wait_until="domcontentloaded", timeout=60000)
         page.wait_for_timeout(5000)
 
-        title = page.title()
+        links = page.locator("a").evaluate_all(
+            """els => els.map(a => a.href).filter(Boolean)"""
+        )
 
-        fe = fg.add_entry()
-        fe.id("https://www.reuters.com/business/")
-        fe.title(title)
-        fe.link(href="https://www.reuters.com/business/")
-        fe.description("Business page title fetched by Playwright")
+        count = 0
+        seen = set()
+
+        for href in links:
+            href = href.split("?")[0]
+            if not href.startswith("https://www.reuters.com/"):
+                continue
+            if href in seen:
+                continue
+            seen.add(href)
+
+            fe = fg.add_entry()
+            fe.id(href)
+            fe.title(href)
+            fe.link(href=href)
+            fe.description("Discovered Reuters link")
+            count += 1
+
+            if count >= 10:
+                break
 
         browser.close()
 
