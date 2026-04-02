@@ -1,4 +1,3 @@
-python
 from playwright.sync_api import sync_playwright
 from feedgen.feed import FeedGenerator
 from datetime import datetime, timezone
