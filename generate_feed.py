@@ -5,16 +5,27 @@ OUTPUT_FILE = "reuters_filtered.xml"
 
 def build_feed():
     fg = FeedGenerator()
-    fg.title("Reuters test feed")
+    fg.title("Reuters feed test")
     fg.link(href="https://www.reuters.com/")
-    fg.description("Test Reuters feed")
+    fg.description("Reuters feed test")
     fg.language("en")
 
-    fe = fg.add_entry()
-    fe.id("https://www.reuters.com/")
-    fe.title("Test item")
-    fe.link(href="https://www.reuters.com/")
-    fe.description("This is a test item")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto("https://www.reuters.com/business/", wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_timeout(5000)
+
+        title = page.title()
+
+        fe = fg.add_entry()
+        fe.id("https://www.reuters.com/business/")
+        fe.title(title)
+        fe.link(href="https://www.reuters.com/business/")
+        fe.description("Business page title fetched by Playwright")
+
+        browser.close()
+
     fg.rss_file(OUTPUT_FILE)
 
 if __name__ == "__main__":
